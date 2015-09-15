@@ -1,0 +1,48 @@
+data:
+  image: tianon/true
+  volumes:
+    - /home/pablo/docker_volumes/data:/opt/data
+
+rabbitmq:
+  image: rabbitmq:3-management
+  expose:
+    - "5672"
+  ports:
+    - "15672:15672"
+
+influxdb:
+  image: tutum/influxdb
+  expose:
+    - "8083"
+    - "8086"
+  ports:
+    - "8083:8083"
+    - "8086:8086"
+
+collector:
+  image: data-collector
+  command: ./wait_to_start
+  volumes_from:
+    - data
+  links:
+    - rabbitmq
+  environment:
+    - WAIT_COMMAND=[ $(curl --silent -u guest:guest http://rabbitmq:15672/api/aliveness-test/%2F | grep ok | wc -l) -eq 1 ]
+    - WAIT_START_CMD=python collect.py
+    - WAIT_SLEEP=2
+    - WAIT_LOOPS=5
+
+processor:
+  image: data-processor
+  command: ./wait_to_start
+  volumes_from:
+    - data
+  links:
+    - rabbitmq
+    - influxdb
+  environment:
+    - RUST_LOG=info
+    - WAIT_COMMAND=[ $(curl --silent -u guest:guest http://rabbitmq:15672/api/aliveness-test/%2F | grep ok | wc -l) -eq 1 ]
+    - WAIT_START_CMD=./process
+    - WAIT_SLEEP=2
+    - WAIT_LOOPS=5

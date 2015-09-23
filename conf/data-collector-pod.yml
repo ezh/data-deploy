@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: data-collector
+  labels:
+    app: data
+spec:
+  containers:
+  - name: data-collector
+    image: data-collector
+  - name: data-processor
+    image: data-processor

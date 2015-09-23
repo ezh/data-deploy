@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb
+  labels:
+    name: influxdb-service
+spec:
+  ports:
+    - port: 8086
+      name: "api"
+    - port: 8083
+      name: "management"
+  selector:
+    app: data
+    component: influxdb

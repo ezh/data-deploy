@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    name: data-collector
+  name: data-collector-controller
+spec:
+  replicas: 1
+  selector:
+    component: data-collector
+  template:
+    metadata:
+      labels:
+        app: data
+        component: data-collector
+    spec:
+      containers:
+      - name: data-collector
+        image: data-collector
+        volumeMounts:
+          - name: data-storage
+            mountPath: /opt/data
+      - name: data-processor
+        image: data-processor
+        volumeMounts:
+          - name: data-storage
+            mountPath: /opt/data
+      volumes:
+        - name: data-storage
+          emptyDir: {}

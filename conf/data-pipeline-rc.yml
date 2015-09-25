@@ -2,17 +2,17 @@ apiVersion: v1
 kind: ReplicationController
 metadata:
   labels:
-    name: data-collector
-  name: data-collector-controller
+    name: data-pipeline
+  name: data-pipeline-controller
 spec:
   replicas: 1
   selector:
-    component: data-collector
+    component: data-pipeline
   template:
     metadata:
       labels:
         app: data
-        component: data-collector
+        component: data-pipeline
     spec:
       containers:
       - name: data-collector
@@ -27,4 +27,4 @@ spec:
             mountPath: /opt/data
       volumes:
         - name: data-storage
-          emptyDir: {}
+          hostPath: /opt/data

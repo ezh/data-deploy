@@ -6,7 +6,20 @@ metadata:
     app: data
 spec:
   containers:
-  - name: data-collector
-    image: data-collector
-  - name: data-processor
-    image: data-processor
+    - name: data-collector
+      image: data-collector
+      volumeMounts:
+        - mountPath: /opt/data
+          name: data-storage
+    - name: data-processor
+      image: data-processor
+      env:
+        - name: RUST_LOG
+          value: debug
+      volumeMounts:
+        - mountPath: /opt/data
+          name: data-storage
+  volumes:
+    - hostPath:
+        path: /opt/data
+      name: data-storage

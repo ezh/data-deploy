@@ -1,0 +1,42 @@
+#!/usr/bin/bash
+set -e
+
+KUBE_CLUSTER=http://localhost:8080
+KBIN="kubectl -s $KUBE_CLUSTER"
+
+
+if [ "$(id -u)" != "0" ]; then
+    echo "Run as root."
+    exit 1
+fi
+
+echo "Starting kubernetes cluster"
+docker-compose up -d
+sleep 25
+
+if [ $(kubectl get rc --namespace=kube-system|awk '{print $2}'|tail -1) = "kube-ui" ]
+then
+    echo "K8s UI already running"
+else
+    echo "Adding kube-ui"
+    $KBIN create -f conf/kube-ui-rc.yml --namespace=kube-system
+    $KBIN create -f conf/kube-ui-svc.yml --namespace=kube-system
+fi
+
+echo "Starting services in kubernetes:"
+for name in rabbitmq influxdb; do
+    echo $name
+    $KBIN create -f conf/$name-rc.yml
+    $KBIN create -f conf/$name-svc.yml
+done
+
+sleep 12
+
+echo "Starting pods:"
+for name in data-pipeline; do
+    echo $name
+    $KBIN create -f conf/$name-rc.yml
+done
+
+sleep 10
+echo "Done"

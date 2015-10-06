@@ -7,9 +7,11 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-echo "Remove untagged images"
-docker rmi $(sudo docker images | grep "^<none>" | awk '{print $3}')
+docker-compose stop
 
 echo "Remove all containers"
 docker ps -a --format={{.ID}} | awk '{print $1}' | xargs docker rm -f
+
+echo "Remove untagged images"
+docker rmi $(sudo docker images | grep "^<none>" | awk '{print $3}')
 

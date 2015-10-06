@@ -56,7 +56,7 @@ echo
 
 
 echo "Starting services"
-for name in influxdb rabbitmq; do
+for name in influxdb etcd rabbitmq; do
     start_in_k8s rc/$name
     start_in_k8s service/$name
 done

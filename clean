@@ -1,7 +1,5 @@
 #!/usr/bin/bash
 
-set -e
-
 if [ "$(id -u)" != "0" ]; then
     echo "Run as root."
     exit 1
@@ -14,4 +12,3 @@ docker ps -a --format={{.ID}} | awk '{print $1}' | xargs docker rm -f
 
 echo "Remove untagged images"
 docker rmi $(sudo docker images | grep "^<none>" | awk '{print $3}')
-

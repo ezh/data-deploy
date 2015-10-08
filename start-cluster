@@ -11,8 +11,9 @@ KBIN="kubectl -s $KUBE_CLUSTER"
 
 is_running() {
     ret_val=1
+    name=$1
     case "$name" in
-    *kue-ui*)
+    *kube-ui*)
         if [ $($KBIN get rc --namespace=kube-system -l k8s-app=kube-ui |awk '{print $2}'|tail -1) = "kube-ui" ];
         then
             ret_val=0
@@ -28,72 +29,88 @@ is_running() {
     return $ret_val
 }
 
+
 start_in_k8s() {
-    name=$1
+    full_name=$1
     if [ -z "$2" ]
     then
         namespace=""
     else
         namespace="--namespace=$2"
     fi
-    if [ $name = "kube-ui" ]; then
-        sleep_time=1
+    case "$full_name" in
+    *service*)
+        sleep_time=5
+        ;;
+    *)
+        sleep_time=15
+        ;;
+    esac
+    if is_running $full_name;
+    then
+        echo "$full_name is already running"
     else
-        sleep_time=30
+        echo conf/$full_name\.yml
+        $KBIN create -f conf/$full_name\.yml $namespace
+        sleep $sleep_time
     fi
-    final_sleep_time=$sleep_time
-    for t in rc service pod; do
-        full_name=$t/$name
-        if is_running $full_name;
-        then
-            echo "$full_name is already running"
-            final_sleep_time=0
-        else
-            final_sleep_time=$sleep_time
-            path=conf/$t/$name.yml
-            if [[ -e $path ]]; then
-                $KBIN create -f $path $namespace
-            fi
-        fi
-    done
-    sleep $final_sleep_time
 }
 
 
-if [[ -z $(docker-compose ps -q) ]]; then
-    echo "Starting kubernetes cluster"
-    docker-compose up -d
-    sleep 20
-else
-    echo "Kubernetes cluster is already running"
-fi
-echo
+start_etcd_in_k8s() {
+    for name in etcd0 etcd1 etcd2; do
+        start_in_k8s service/$name
+    done
+    for name in etcd0 etcd1 etcd2; do
+        start_in_k8s pod/$name
+    done
+}
 
 
-echo "Starting addons"
-start_in_k8s kube-ui kube-system
-echo
+start_infrastructure() {
+    echo "Starting infrastructure in Kubernetes"
+    start_in_k8s service/kube-ui kube-system
+    start_in_k8s rc/kube-ui kube-system
+
+    start_etcd_in_k8s
+
+    for n in influxdb rabbitmq; do
+        start_in_k8s service/$n
+        start_in_k8s rc/$n
+    done
+
+    echo
+    echo "Creating influxdb databases"
+    influxdb_host=`$KBIN get service/influxdb -t={{.spec.clusterIP}}`
+    for name in data_stats monitoring; do
+        curl -s -G http://$influxdb_host:8086/query --data-urlencode "q=CREATE DATABASE $name" > /dev/null
+    done
+    echo
+}
 
 
-echo "Starting in Kubernetes"
-for name in influxdb etcd0 etcd1 etcd2 rabbitmq; do
-    start_in_k8s $name
-done
-echo
+start_app() {
+    echo "Starting app"
+    for name in data-pipeline; do
+        start_in_k8s rc/$name
+    done
+    echo
+}
 
 
-echo "Creating influxdb databases"
-INFLUXDB_HOST=`$KBIN get service/influxdb -t={{.spec.clusterIP}}`
-for name in data_stats monitoring; do
-    curl -s -G http://$INFLUXDB_HOST:8086/query --data-urlencode "q=CREATE DATABASE $name" > /dev/null
-done
-echo
+start_kubernetes() {
+    if [[ -z $(docker-compose ps -q) ]]; then
+        echo "Starting kubernetes cluster"
+        docker-compose up -d
+        sleep 20
+    else
+        echo "Kubernetes cluster is already running"
+    fi
+    echo
+}
 
 
-echo "Starting app"
-for name in data-pipeline; do
-    start_in_k8s $name
-done
-echo
-
+start_kubernetes
+start_infrastructure
+start_app
 echo "Done"

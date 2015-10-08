@@ -14,11 +14,12 @@ spec:
         app: data
         component: data-pipeline
     spec:
+      hostNetwork: true
       containers:
         - name: data-collector
           image: data-collector
           volumeMounts:
-            - mountPath: /opt/data
+            - mountPath: /opt/data/processor/queue
               name: data-storage
         - name: data-processor
           image: data-processor
@@ -26,7 +27,7 @@ spec:
             - name: RUST_LOG
               value: debug
           volumeMounts:
-            - mountPath: /opt/data
+            - mountPath: /opt/data/processor/queue
               name: data-storage
       volumes:
         - emptyDir: {}

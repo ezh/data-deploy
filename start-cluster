@@ -102,7 +102,7 @@ start_kubernetes() {
     if [[ -z $(docker-compose ps -q) ]]; then
         echo "Starting kubernetes cluster"
         docker-compose up -d
-        sleep 20
+        sleep 30
     else
         echo "Kubernetes cluster is already running"
     fi

@@ -5,14 +5,17 @@ etcd:
 master:
   image: gcr.io/google_containers/hyperkube:v1.0.6
   net: "host"
-  privileged: true
+  # privileged: true
   volumes:
-    - /:/rootfs:ro
-    - /sys:/sys:ro
-    - /dev:/dev
-    - /var/lib/docker/:/var/lib/docker:ro
-    - /var/lib/kubelet/:/var/lib/kubelet:rw
-    - /var/run:/var/run:rw
+    - /var/run/docker.sock:/var/run/docker.sock
+    # Taken from
+    # https://github.com/kubernetes/kubernetes/blob/master/docs/getting-started-guides/docker-multinode/worker.sh
+    # - /:/rootfs:ro
+    # - /sys:/sys:ro
+    # - /dev:/dev
+    # - /var/lib/docker/:/var/lib/docker:ro
+    # - /var/lib/kubelet/:/var/lib/kubelet:rw
+    # - /var/run:/var/run:rw
   command: /hyperkube kubelet --containerized --hostname-override="127.0.0.1" --address="0.0.0.0" --api-servers=http://localhost:8080 --config=/etc/kubernetes/manifests
 
 proxy:

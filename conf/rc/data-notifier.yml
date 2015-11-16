@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: data-notifier
+  labels:
+    name: data-notifier-rc
+spec:
+  replicas: 1
+  selector:
+    component: data-notifier
+  template:
+    metadata:
+      labels:
+        app: data
+        component: data-notifier
+    spec:
+      containers:
+        - image: data-notifier
+          name: data-notifier
+          ports:
+            - containerPort: 8999
+              hostPort: 8999
+              name: api
+          resources:
+            limits:
+              cpu: 100m

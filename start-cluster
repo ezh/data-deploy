@@ -1,15 +1,10 @@
 #!/usr/bin/bash
 set -e
 
-if [ "$(id -u)" != "0" ]; then
-    echo "Run as root."
-    exit 1
-fi
-
 KUBE_CLUSTER=http://localhost:8080
 KBIN="kubectl -s $KUBE_CLUSTER"
 
-is_running() {
+already_created() {
     ret_val=1
     name=$1
     case "$name" in
@@ -29,6 +24,16 @@ is_running() {
     return $ret_val
 }
 
+pod_running() {
+    phase=`$KBIN get pods $1 --template={{.status.phase}}`
+    if [ $phase = "Running" ];
+    then
+        return 0
+    else
+        return 1
+    fi
+}
+
 
 start_in_k8s() {
     full_name=$1
@@ -40,15 +45,15 @@ start_in_k8s() {
     fi
     case "$full_name" in
     *service*)
-        sleep_time=5
+        sleep_time=10
         ;;
     *)
-        sleep_time=15
+        sleep_time=20
         ;;
     esac
-    if is_running $full_name;
+    if already_created $full_name;
     then
-        echo "$full_name is already running"
+        echo "$full_name is already created"
     else
         echo conf/$full_name\.yml
         $KBIN create -f conf/$full_name\.yml $namespace
@@ -67,6 +72,22 @@ start_etcd_in_k8s() {
 }
 
 
+create_influxdb_databases() {
+    influxdb_host=`$KBIN get service/influxdb -t={{.spec.clusterIP}}`
+    for name in data_stats monitoring; do
+        curl -s -G http://$influxdb_host:8086/query --data-urlencode "q=CREATE DATABASE $name" > /dev/null
+    done
+}
+
+
+create_etcd_entries() {
+    etcd_host=`$KBIN get services/etcd0 -t={{.spec.clusterIP}}`
+    etcdctl --endpoint="http://$etcd_host:2379" set /data/collector/url null
+    etcdctl --endpoint="http://$etcd_host:2379" set /data/collector/delay 15
+    echo done
+}
+
+
 start_infrastructure() {
     echo "Starting infrastructure in Kubernetes"
     start_in_k8s service/kube-ui kube-system
@@ -74,17 +95,30 @@ start_infrastructure() {
 
     start_etcd_in_k8s
 
-    for n in influxdb rabbitmq; do
+    for n in influxdb rabbitmq rethinkdb data-backend data-notifier; do
         start_in_k8s service/$n
         start_in_k8s rc/$n
     done
 
     echo
     echo "Creating influxdb databases"
-    influxdb_host=`$KBIN get service/influxdb -t={{.spec.clusterIP}}`
-    for name in data_stats monitoring; do
-        curl -s -G http://$influxdb_host:8086/query --data-urlencode "q=CREATE DATABASE $name" > /dev/null
-    done
+    pod_name=`$KBIN get pods --no-headers -l component=influxdb | awk '{print $1}'`
+    if pod_running $pod_name;
+    then
+        create_influxdb_databases
+    else
+        sleep 30
+        create_influxdb_databases
+    fi
+
+    echo "Creating initial configuration in etcd"
+    if pod_running "etcd0";
+    then
+        create_etcd_entries
+    else
+        sleep 30
+        create_etcd_entries
+    fi
     echo
 }
 

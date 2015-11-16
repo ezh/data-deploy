@@ -16,6 +16,12 @@ spec:
     spec:
       hostNetwork: true
       containers:
+        - name: data-frontend
+          image: data-frontend
+          ports:
+          - name: static
+            containerPort: 80
+            protocol: TCP
         - name: data-collector
           image: data-collector
           volumeMounts:

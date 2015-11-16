@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: rethinkdb
+  labels:
+    name: rethinkdb-rc
+spec:
+  replicas: 1
+  selector:
+    component: rethinkdb
+  template:
+    metadata:
+      labels:
+        app: data
+        component: rethinkdb
+    spec:
+      containers:
+        - image: rethinkdb
+          name: rethinkdb
+          ports:
+            - containerPort: 29015
+              name: "intracluster"
+            - containerPort: 28015
+              name: "driver"
+            - containerPort: 8080
+              name: "management"
+          resources:
+            limits:
+              cpu: 100m

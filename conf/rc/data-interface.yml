@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: data-interface
+  labels:
+    name: data-interface-rc
+spec:
+  replicas: 1
+  selector:
+    component: data-interface
+  template:
+    metadata:
+      labels:
+        app: data
+        component: data-interface
+    spec:
+      hostNetwork: true
+      containers:
+        - name: data-frontend
+          image: data-frontend
+          ports:
+          - name: static
+            containerPort: 80
+        - name: data-backend
+          image: data-backend
+          ports:
+          - name: static
+            containerPort: 18888

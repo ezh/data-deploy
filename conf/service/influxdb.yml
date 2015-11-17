@@ -5,6 +5,7 @@ metadata:
   labels:
     name: influxdb-service
 spec:
+  clusterIP: 10.0.0.111
   ports:
     - port: 8086
       name: "api"

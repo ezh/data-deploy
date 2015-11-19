@@ -141,7 +141,7 @@ start_infrastructure() {
 
 start_app() {
     echo "Starting app"
-    for name in data-pipeline data-interface; do
+    for name in data-frontend data-backend data-collector data-processor; do
         start_in_k8s rc/$name
     done
     echo

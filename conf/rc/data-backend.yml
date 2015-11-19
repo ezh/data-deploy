@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: data-backend
+  labels:
+    name: data-backend-rc
+spec:
+  replicas: 1
+  selector:
+    component: data-backend
+  template:
+    metadata:
+      labels:
+        app: data
+        component: data-backend
+    spec:
+      hostNetwork: true
+      containers:
+        - name: data-backend
+          image: data-backend
+          ports:
+          - name: static
+            containerPort: 18888

@@ -10,7 +10,6 @@ master:
   volumes:
     - /:/rootfs:ro
     - /sys:/sys:ro
-    #- /dev:/dev
     - /var/lib/docker/:/var/lib/docker:ro
     - /var/lib/kubelet/:/var/lib/kubelet:rw
     - /var/run:/var/run:rw

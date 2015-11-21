@@ -28,7 +28,8 @@ already_created() {
 
 pod_running() {
     phase=`$KBIN get pods $1 --template={{.status.phase}}`
-    if [ $phase = "Running" ];
+    echo "pod $1 phase is $phase"
+    if [ "$phase" = "Running" ];
     then
         return 0
     else

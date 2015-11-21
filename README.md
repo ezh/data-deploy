@@ -18,9 +18,23 @@
     - kill first the kubelet container
     - kill the rest: sudo docker ps --format="{{.ID}}"| awk '{print $1}' | xargs sudo docker kill
 - etcd cluster healt: ./etcdctl -C 10.0.0.11:2379,10.0.0.12:2379,10.0.0.13:2379 cluster-health
+
 # Check
 
 - mount a volume to the kube node from the host machine
 - monitoring http://kubernetes.io/v1.0/docs/user-guide/monitoring.html
 - logging
 
+# Allowing cors
+
+Basically, need to modify args passed to api server.
+To do this, we need to modify the docker image, more specifically the file /etc/kubernetes/manifest/master.json where
+the pods commands are defined.
+Since the image has no editors, is easier to just mount a volume, copy it there to edit from the host and the copy back
+in the image:
+
+- docker run -it -v /tmp/:/tmp/files gcr.io/google_containers/hyperkube:v1.1.1 /bin/bash
+- Add "--cors-allowed-origins=.*" to apiserver command
+- docker commit -m "Added cors" <image_id> gcr.io/google_containers/hyperkube:v1.1.1
+
+Dockerfile and manifests come from kubernetes/cluster/images/hyperkube/ at github

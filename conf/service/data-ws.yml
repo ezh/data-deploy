@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: data-notifier
+  name: data-ws
   labels:
-    name: data-notifier-service
+    name: data-ws-service
 spec:
   clusterIP: 10.0.0.113
   ports:
@@ -11,4 +11,4 @@ spec:
       name: api
   selector:
     app: data
-    component: data-notifier
+    component: data-ws

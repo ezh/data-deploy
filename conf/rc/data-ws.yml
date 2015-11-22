@@ -1,22 +1,26 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: data-notifier
+  name: data-ws
   labels:
-    name: data-notifier-rc
+    name: data-ws-rc
 spec:
   replicas: 1
   selector:
-    component: data-notifier
+    component: data-ws
   template:
     metadata:
       labels:
         app: data
-        component: data-notifier
+        component: data-ws
     spec:
       containers:
-        - image: data-notifier
-          name: data-notifier
+        - image: data-ws
+        name: data-ws
+          ports:
+            - containerPort: 8999
+              hostPort: 8999
+              name: api
           resources:
             limits:
               cpu: 100m

@@ -131,18 +131,18 @@ start_infrastructure() {
     create_influxdb_databases
     echo
 
-    echo Starting notifier service
+    echo Starting WebSocket service
     pod_name=`$KBIN get pods --no-headers -l component=rethinkdb | awk '{print $1}'`
     wait_for_pod $pod_name
-    start_in_k8s service/data-notifier
-    start_in_k8s rc/data-notifier
+    start_in_k8s service/data-ws
+    start_in_k8s rc/data-ws
     echo
 }
 
 
 start_app() {
     echo "Starting app"
-    for name in data-frontend data-backend data-collector data-processor; do
+    for name in data-frontend data-backend data-notifier data-collector data-processor; do
         start_in_k8s rc/$name
     done
     echo

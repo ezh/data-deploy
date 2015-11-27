@@ -23,7 +23,7 @@ spec:
     - "etcd0=http://$(ETCD0_SERVICE_HOST):2380,etcd1=http://$(ETCD1_SERVICE_HOST):2380,etcd2=http://$(ETCD2_SERVICE_HOST):2380"
     - -initial-cluster-state
     - new
-    image: quay.io/coreos/etcd:latest
+    image: quay.io/coreos/etcd:v2.2.2
     name: etcd0
     ports:
     - containerPort: 2379

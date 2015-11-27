@@ -48,10 +48,10 @@ start_in_k8s() {
     fi
     case "$full_name" in
     *service*)
-        sleep_time=10
+        sleep_time=5
         ;;
     *)
-        sleep_time=20
+        sleep_time=15
         ;;
     esac
     if already_created $full_name;
@@ -105,7 +105,7 @@ wait_for_pod() {
                 exit 1
             fi
             echo "Pod $1 still not in running state. Waiting"
-            sleep 35
+            sleep 25
         fi
     done
 }
@@ -153,7 +153,7 @@ start_kubernetes() {
     if [[ -z $(docker-compose ps -q) ]]; then
         echo "Starting kubernetes cluster"
         docker-compose up -d
-        sleep 30
+        sleep 25
         start_in_k8s service/kube-ui kube-system
         start_in_k8s rc/kube-ui kube-system
     else

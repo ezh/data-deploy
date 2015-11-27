@@ -33,8 +33,8 @@ the pods commands are defined.
 Since the image has no editors, is easier to just mount a volume, copy it there to edit from the host and the copy back
 in the image:
 
-- docker run -it -v /tmp/:/tmp/files gcr.io/google_containers/hyperkube:v1.1.1 /bin/bash
+- docker run -it -v /tmp/:/tmp/files gcr.io/google_containers/hyperkube:<tag> /bin/bash
 - Add "--cors-allowed-origins=.*" to apiserver command
-- docker commit -m "Added cors" <image_id> gcr.io/google_containers/hyperkube:v1.1.1
+- docker commit -m "Added cors" <image_id> gcr.io/google_containers/hyperkube:<tag>
 
 Dockerfile and manifests come from kubernetes/cluster/images/hyperkube/ at github
